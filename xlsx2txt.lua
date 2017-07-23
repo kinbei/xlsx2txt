@@ -250,7 +250,7 @@ local function load_xlsx(filename)
 				end
 			end
 		end
-		for _,v in ipairs(sheets) do
+		for _,v in pairs(sheets) do
 			load_sheet(self, v)
 		end
 	end
@@ -260,7 +260,16 @@ local function load_xlsx(filename)
 	return sheets
 end
 
-local filename = ...
+local opt = {}
+local filename
+
+for _, v in ipairs{...} do
+	if v:sub(1,1) == "-" then
+		opt[v:sub(2)] = true
+	else
+		filename = v
+	end
+end
 
 local sheets = load_xlsx(filename)
 
@@ -271,9 +280,14 @@ local function escape_value(s)
 	return s
 end
 
-for _,v in ipairs(sheets) do
+for _,v in pairs(sheets) do
 	local name = v.name
 	for _,v in ipairs(v.sheetData) do
-		print(string.format("%s (%s) %s : %s",filename,name,v.r,escape_value(v.v)))
+		if v.f and (opt.f or opt.a) then
+			print(string.format("%s (%s) %s = %s",filename,name,v.r,escape_value(v.f)))
+		end
+		if not opt.f then
+			print(string.format("%s (%s) %s : %s",filename,name,v.r,escape_value(v.v)))
+		end
 	end
 end
